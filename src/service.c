@@ -36,7 +36,7 @@ int service_init_lua(service_t * s, const char * code) {
     // save the function reference in the registry ( and pop the stack )
     s->lua_func_ref = luaL_ref(L, LUA_REGISTRYINDEX);
     s->L = L;
-    s->service_type = 1; // lua service
+    // s->service_type = 1; // lua service
 
     return 0; // no error
 }
@@ -73,7 +73,7 @@ void * service_routine_wrap(void * arg) {
     void * msg;
     service_t * s = (service_t *)arg;
 
-    assert(s->service_type == 1);
+    // assert(s->service_type == 1);
     assert(s->L != NULL);
     assert(s->lua_func_ref > 0);
 
@@ -87,7 +87,6 @@ void * service_routine_wrap(void * arg) {
         cond_wait_end(s->c);
 
         // run lua code
-        // s->routine(s, msg);
         service_routine_lua(s, msg);
     }
 }

@@ -9,22 +9,16 @@
 
 typedef unsigned long long service_id;
 
-typedef void * (*service_routine_t)(void * s, void * msg);
 
 typedef struct {
     service_id id;
     struct queue * q;
 
-
     pthread_t thread;
     struct cond * c;
-    // service_routine_t init;
-    // void * init_params;
 
-    uint32_t service_type; // 1 : lua service, 2 : normal C service
     lua_State * L;
     int lua_func_ref;
-    service_routine_t routine;
 } service_t;
 
 service_t * service_new();

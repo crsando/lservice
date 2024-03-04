@@ -3,27 +3,34 @@ local ffi = require "ffi"
 ffi.cdef[[
 typedef unsigned long int pthread_t;
 pthread_t pthread_self();
+]]
 
+ffi.cdef[[
 typedef unsigned long long service_id;
 
 typedef void * (*service_routine_t)(void * s, void * msg);
 
+typedef struct _lua_State lua_State;
+
 typedef struct {
     service_id id;
     struct queue * q;
-
-
     pthread_t thread;
-    service_routine_t init;
-    service_routine_t routine;
-    void * init_params;
-
     struct cond * c;
+    uint32_t service_type; 
+    lua_State * L;
+    int lua_func_ref;
+    service_routine_t routine;
 } service_t;
 
 service_t * service_new();
-int service_start(service_t * s, service_routine_t routine, service_routine_t init, void * init_params);
+
+int service_init_lua(service_t * s, const char * code);
+int service_routine_lua(service_t * s, void * msg);
+int service_start(service_t * s);
 int service_send(service_t * s, void * msg);
+
+int service_free(service_t * s);
 
 typedef struct {
     uint32_t type;
@@ -32,39 +39,20 @@ typedef struct {
 } message_t;
 ]]
 
+
 ffi.cdef[[
     unsigned int sleep (unsigned int seconds);
     int queue_length(struct queue *q);
 ]]
 
 
-function fib(n)
-    if n <= 1 then return n end
-    return fib(n-1) + fib(n-2)
-end
-
 local lservice = ffi.load("lservice")
 
-
 local s = lservice.service_new()
+local code = io.open("service/hello.lua"):read("*all")
 
-function routine(s, msg)
-    i = 1
-    -- local n = 40
-    -- -- s = ffi.cast("service_t *", s)
-    -- -- print("routine job", lservice.queue_length(s.q))
-    -- print("routine job", ffi.C.pthread_self())
-    -- print(n, fib(n))
-    -- print("sleep end")
-end
-
-function init(s, msg)
-    s = ffi.cast("service_t *", s)
-    print("init job")
-end
-
-
-lservice.service_start(s, routine, init, nil)
+lservice.service_init_lua(s, code)
+lservice.service_start(s)
 
 local msg = ffi.new("message_t")
 
@@ -74,5 +62,5 @@ while true do
     local n = lservice.queue_length(s.q)
     print("queue_length: ", n)
     lservice.service_send(s, msg)
-    -- print(10, fib(10))
+    ffi.C.sleep(1)
 end
