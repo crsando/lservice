@@ -49,12 +49,13 @@ local lservice = ffi.load("lservice")
 local s = lservice.service_new()
 
 function routine(s, msg)
-    local n = 40
-    -- s = ffi.cast("service_t *", s)
-    -- print("routine job", lservice.queue_length(s.q))
-    print("routine job", ffi.C.pthread_self())
-    print(n, fib(n))
-    print("sleep end")
+    i = 1
+    -- local n = 40
+    -- -- s = ffi.cast("service_t *", s)
+    -- -- print("routine job", lservice.queue_length(s.q))
+    -- print("routine job", ffi.C.pthread_self())
+    -- print(n, fib(n))
+    -- print("sleep end")
 end
 
 function init(s, msg)
@@ -73,5 +74,5 @@ while true do
     local n = lservice.queue_length(s.q)
     print("queue_length: ", n)
     lservice.service_send(s, msg)
-    print(n, fib(n))
+    -- print(10, fib(10))
 end
