@@ -27,7 +27,6 @@ int service_init_lua(service_t * s, const char * code);
 int service_routine_lua(service_t * s, void * msg);
 int service_start(service_t * s);
 int service_send(service_t * s, void * msg);
-
 int service_free(service_t * s);
 
 typedef struct {
