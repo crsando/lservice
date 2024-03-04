@@ -11,8 +11,7 @@ all : liblservice.$(SO)
 
 SRCS=\
  src/service.c \
- src/queue.c \
- src/message.c
+ src/queue.c
 
 liblservice.$(SO) : $(SRCS)
 	$(CC) $(CFLAGS) $(SHARED) $(LUAINC) -Isrc -o $@ $^ $(LIBS)

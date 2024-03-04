@@ -40,7 +40,7 @@ int main(int argc, char ** argv) {
     service_t * s;
     s = service_new();
 
-    service_start(s, job, NULL, NULL);
+    service_start(s, job, init, NULL);
 
     while(1) {
         int n = queue_length(s->q);

@@ -19,8 +19,12 @@ typedef struct {
     struct cond * c;
 } service_t;
 
-
-
 service_t * service_new();
 int service_start(service_t * s, service_routine_t routine, service_routine_t init, void * init_params);
 int service_send(service_t * s, void * msg);
+
+typedef struct {
+    uint32_t type;
+    void * body;
+    size_t size;
+} message_t;

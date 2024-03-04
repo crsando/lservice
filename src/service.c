@@ -19,17 +19,21 @@ service_t * service_new() {
 
 // entry fro pthread_create
 void * service_routine_wrap(void * arg) {
+    void * msg;
     service_t * s = (service_t *)arg;
 
-    s->init(s, NULL);
+    // s->init(s, NULL);
 
     // run once
     while (1) {
+        printf("try wait\n");
         cond_wait_begin(s->c);
         cond_wait(s->c);
-        void * msg = queue_pop_ptr(s->q);
+        printf("out of wait\n");
+        msg = queue_pop_ptr(s->q);
         cond_wait_end(s->c);
 
+        printf("run routine\n");
         s->routine(s, msg);
     }
 }
@@ -50,4 +54,20 @@ int service_send(service_t * s, void * msg) {
     queue_push_ptr(s->q, msg);
     cond_trigger_end(s->c, 1);
     return 1;
+}
+
+
+message_t * message_new(message_t *msg) {
+	message_t * r = (message_t *)malloc(sizeof(*r));
+	if (r == NULL)
+		return NULL;
+	*r = *msg;
+	return r;
+}
+
+void message_delete(message_t *msg) {
+	if (msg) {
+		free(msg->body);
+		free(msg);
+	}
 }
