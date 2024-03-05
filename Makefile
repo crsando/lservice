@@ -18,7 +18,6 @@ liblservice.$(SO) : $(SRCS)
 
 install:
 	cp liblservice.so /usr/local/lib
-	cp lua-seri.so /usr/local/lib/lua/5.1/
 
 test: test.c
 	$(CC) $(CFLAGS) $(LUAINC) test.c -L. -lluajit-5.1 -llservice -Isrc -o test 
@@ -28,7 +27,3 @@ test2: test2.c
 
 clean :
 	rm -rf *.$(SO)
-
-
-lua-seri.so: src/lua-seri-lib.c src/lua-seri.c
-	$(CC) $(CFLAGS) $(SHARED) $(LUAINC) -o $@ $^ -lluajit-5.1 -Isrc
