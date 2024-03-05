@@ -1,7 +1,6 @@
 #include "service.h"
 
-
-
+#include "log.h"
 #include <assert.h>
 #include <stdlib.h>
 
@@ -12,14 +11,14 @@ int service_init_lua(service_t * s, const char * code) {
     lua_State * L;
 	L = luaL_newstate();
     if(!L) {
-		printf("THREAD FATAL ERROR: could not create lua state\n");
+		log_error("THREAD FATAL ERROR: could not create lua state");
 		return -1;
 	}
 
 	luaL_openlibs(L);
 
     if(luaL_loadstring(L, code)) {
-        printf("FATAL THREAD PANIC: (loadstring) %s\n", lua_tolstring(L, -1, NULL));
+        log_error("FATAL THREAD PANIC: (loadstring) %s", lua_tolstring(L, -1, NULL));
 		lua_close(L);
 		return -1; 
     }
@@ -28,7 +27,7 @@ int service_init_lua(service_t * s, const char * code) {
     // whenever some message arrives, this function will be executed
     // no config input, one output ( the routine function )
 	if(lua_pcall(L, 0, 1, 0)) {
-		printf("FATAL THREAD PANIC: (pcall) %s\n", lua_tolstring(L, -1, NULL));
+		log_error("FATAL THREAD PANIC: (pcall) %s", lua_tolstring(L, -1, NULL));
 		lua_close(L);
 		return -1;
 	}
@@ -49,7 +48,7 @@ int service_routine_lua(service_t * s, void * msg) {
     lua_pushlightuserdata(L, msg);
     int errcode = lua_pcall(L, 1, 0, 0); // one input, no output
     if(errcode) {
-        printf("ERROR in lua routine : %s\n", lua_tolstring(L, -1, NULL));
+        log_error("ERROR in lua routine : %s", lua_tolstring(L, -1, NULL));
         return -1;
     }
     return 0; // no error
@@ -83,7 +82,11 @@ void * service_routine_wrap(void * arg) {
     while (1) {
         cond_wait_begin(s->c);
         cond_wait(s->c);
-        msg = queue_pop_ptr(s->q);
+
+        // designated behaviour: throw msg away, leave only the last one
+        while( queue_length(s->q) > 0 )
+            msg = queue_pop_ptr(s->q);
+
         cond_wait_end(s->c);
 
         // run lua code
@@ -113,17 +116,17 @@ int service_free(service_t * s) {
 }
 
 
-message_t * message_new(message_t *msg) {
-	message_t * r = (message_t *)malloc(sizeof(*r));
-	if (r == NULL)
-		return NULL;
-	*r = *msg;
-	return r;
-}
+// message_t * message_new(message_t *msg) {
+// 	message_t * r = (message_t *)malloc(sizeof(*r));
+// 	if (r == NULL)
+// 		return NULL;
+// 	*r = *msg;
+// 	return r;
+// }
 
-void message_delete(message_t *msg) {
-	if (msg) {
-		free(msg->body);
-		free(msg);
-	}
-}
+// void message_delete(message_t *msg) {
+// 	if (msg) {
+// 		free(msg->body);
+// 		free(msg);
+// 	}
+// }

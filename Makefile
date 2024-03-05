@@ -11,7 +11,8 @@ all : liblservice.$(SO) lua-seri.so
 
 SRCS=\
  src/service.c \
- src/queue.c
+ src/queue.c \
+ src/log.c
 
 liblservice.$(SO) : $(SRCS)
 	$(CC) $(CFLAGS) $(SHARED) $(LUAINC) -Isrc -o $@ $^ $(LIBS)
