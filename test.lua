@@ -58,9 +58,18 @@ local msg = ffi.new("message_t")
 
 print(ffi.C.pthread_self())
 
+
+local seri = require "lseri"
+local data = {
+    topic = "hello",
+    body = "world",
+}
+
+
 while true do
     local n = lservice.queue_length(s.q)
     print("queue_length: ", n)
+    local msg = seri.pack(data)
     lservice.service_send(s, msg)
     ffi.C.sleep(1)
 end
