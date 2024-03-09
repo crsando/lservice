@@ -29,8 +29,8 @@ int service_start(service_t * s);
 int service_send(service_t * s, void * msg);
 int service_free(service_t * s);
 
-typedef struct {
-    uint32_t type;
-    void * body;
-    size_t size;
-} message_t;
+// typedef struct {
+//     uint32_t type;
+//     void * body;
+//     size_t size;
+// } message_t;

@@ -19,6 +19,7 @@ liblservice.$(SO) : $(SRCS)
 
 install:
 	cp liblservice.so /usr/local/lib
+	cp lua/lservice.lua /usr/local/share/lua/5.1/
 
 test: test.c
 	$(CC) $(CFLAGS) $(LUAINC) test.c -L. -lluajit-5.1 -llservice -Isrc -o test 
