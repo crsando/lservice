@@ -3,6 +3,10 @@ local inspect = require "inspect"
 local seri = require "lseri"
 local service = require "lservice"
 
+local config = seri.unpack_remove(...)
+
+print("config:", inspect(config))
+
 
 function hello(msg)
     i = i + 1

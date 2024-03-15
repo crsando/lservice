@@ -6,8 +6,25 @@
 
 #define _SERVICE_MQ_DEF_SIZE_ 1024
 
+service_pool_t * service_pool_new() {
+    service_pool_t * pool = NULL;
+    pool = (service_pool_t *)malloc(sizeof(service_pool_t));
+    memset(pool, 0, sizeof(service_pool_t));
+    return pool;
+}
 
-int service_init_lua(service_t * s, const char * code) {
+void * service_pool_registry(service_pool_t * pool, const char * key, void * ptr) {
+    if(ptr) {
+        // get registry
+        return registry_get(&pool->variables, key);
+    }
+    else {
+        registry_put(&pool->variables, key, ptr);
+        return ptr;
+    }
+}
+
+int service_init_lua(service_t * s, const char * code, void * config) {
     lua_State * L;
 	L = luaL_newstate();
     if(!L) {
@@ -17,16 +34,30 @@ int service_init_lua(service_t * s, const char * code) {
 
 	luaL_openlibs(L);
 
+
     if(luaL_loadstring(L, code)) {
         log_error("FATAL THREAD PANIC: (loadstring) %s", lua_tolstring(L, -1, NULL));
 		lua_close(L);
 		return -1; 
     }
 
+    // push lightuserdata (config)
+    log_debug("config: %d", config);
+    int n_args = 0;
+    if(config) {
+        lua_pushlightuserdata(L, config);
+        n_args ++;
+    }
+
+    if(s->pool) {
+        lua_pushlightuserdata(L, s->pool);
+        n_args ++;
+    }
+
     // run the lua code, we expect the code will *return* a proper lua function
     // whenever some message arrives, this function will be executed
     // no config input, one output ( the routine function )
-	if(lua_pcall(L, 0, 1, 0)) {
+	if(lua_pcall(L, n_args, 1, 0)) {
 		log_error("FATAL THREAD PANIC: (pcall) %s", lua_tolstring(L, -1, NULL));
 		lua_close(L);
 		return -1;
@@ -55,12 +86,21 @@ int service_routine_lua(service_t * s, void * msg) {
 }
 
 
-service_t * service_new() {
+service_t * service_new(service_pool_t * pool, const char * name) {
     service_t * s;
 
     s = (service_t *)malloc(sizeof(service_t));
-    s->q = queue_new_ptr(_SERVICE_MQ_DEF_SIZE_);
+    memset(s, 0, sizeof(service_t));
 
+    if(pool) {
+        s->pool = pool;
+        assert(name && (strlen(name) <= 30));
+        strcpy(s->name, name);
+
+        registry_put(&pool->services, name, s);
+    }
+
+    s->q = queue_new_ptr(_SERVICE_MQ_DEF_SIZE_);
     s->c = (struct cond *)malloc(sizeof(struct cond));
     cond_create(s->c);
 
@@ -84,6 +124,7 @@ void * service_routine_wrap(void * arg) {
         cond_wait(s->c);
 
         // designated behaviour: throw msg away, leave only the last one
+        // TODO: Fix memory
         while( queue_length(s->q) > 0 )
             msg = queue_pop_ptr(s->q);
 

@@ -7,23 +7,36 @@
 #include <lualib.h>
 #include <lauxlib.h>
 
+#include "registry.h"
+
 typedef unsigned long long service_id;
 
+typedef struct {
+    registry_t * services;
+    registry_t * variables;
+} service_pool_t;
+
+service_pool_t * service_pool_new();
+
+void * service_pool_registry(service_pool_t * pool, const char * key, void * ptr);
 
 typedef struct {
-    service_id id;
-    struct queue * q;
+    service_pool_t * pool;
+    char name[32];
+    // service_id id;
 
+    // multi-thread utilities
     pthread_t thread;
+    struct queue * q;
     struct cond * c;
 
     lua_State * L;
     int lua_func_ref;
 } service_t;
 
-service_t * service_new();
+service_t * service_new(service_pool_t * pool, const char * name);
 
-int service_init_lua(service_t * s, const char * code);
+int service_init_lua(service_t * s, const char * code, void * config);
 int service_routine_lua(service_t * s, void * msg);
 int service_start(service_t * s);
 int service_send(service_t * s, void * msg);

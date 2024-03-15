@@ -12,6 +12,7 @@ all : liblservice.$(SO) lua-seri.so
 SRCS=\
  src/service.c \
  src/queue.c \
+ src/registry.c \
  src/log.c
 
 liblservice.$(SO) : $(SRCS)
@@ -26,6 +27,9 @@ test: test.c
 
 test2: test2.c
 	$(CC) $(CFLAGS) $(LUAINC) test2.c -L. -lluajit-5.1 -llservice -Isrc -o test2 
+
+test_registry: test_registry.c
+	$(CC) $(CFLAGS) $(LUAINC) test_registry.c -L. -lluajit-5.1 -llservice -Isrc -o test_registry
 
 clean :
 	rm -rf *.$(SO)

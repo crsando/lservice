@@ -20,7 +20,7 @@ typedef struct {
 
 service_t * service_new();
 
-int service_init_lua(service_t * s, const char * code);
+int service_init_lua(service_t * s, const char * code, void * config);
 int service_routine_lua(service_t * s, void * msg);
 int service_start(service_t * s);
 int service_send(service_t * s, void * msg);
@@ -33,6 +33,9 @@ ffi.cdef[[
     int queue_length(struct queue *q);
 ]]
 
+--
+-- end of ffi cdecl
+--
 
 local lservice = ffi.load("lservice")
 
@@ -49,7 +52,7 @@ local _mt = {
             else 
                 code = t.code
             end
-            return tonumber(lservice.service_init_lua(self._s, code))
+            return tonumber(lservice.service_init_lua(self._s, code, t.config))
         end,
     start = function (self)
             return tonumber(lservice.service_start(self._s))
@@ -68,10 +71,10 @@ function M.new()
     return s
 end
 
-function M.load(path)
+function M.load(path, config)
     local s = M.new()
     local ret = 0
-    ret = s:init { path = path }
+    ret = s:init { path = path, config = config }
     if ret ~= 0 then 
         print("init service failed : %s", path)
         return nil

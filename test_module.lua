@@ -2,8 +2,10 @@ local service = require "lservice"
 local seri = require "lseri"
 
 
-local s1 = service.load("service/hello.lua")
-local s2 = service.load("service/hello.lua")
+local config1 = seri.pack { sentence = "hello world" }
+
+local s1 = service.load("service/hello.lua", config1)
+local s2 = service.load("service/hello.lua", nil)
 
 
 local data = { 1, 2, 3, "hello", last = "world"}
