@@ -141,10 +141,16 @@ end
 
 -- deserilizer is the function for resolving the configuration
 function M.input(deserilizer, ...)
-    local cfg_ptr, pool_ptr = ...
+    local srv_ptr, cfg_ptr = ...
     local config = (cfg_ptr ~= nil) and deserilizer(cfg_ptr) or {}
-    local pool = (pool_ptr ~= nil ) and M.new_pool(pool_ptr) or nil
-    return config, pool
+    local name, pool = nil, nil
+    if srv_ptr ~= nil then 
+        local srv = ffi.cast("service_t *", srv_ptr) 
+        name = ffi.string(srv.name)
+        local pool_ptr = srv.pool
+        pool = (pool_ptr ~= nil ) and M.new_pool(pool_ptr) or nil
+    end
+    return name, config, pool
 end
 
 return M

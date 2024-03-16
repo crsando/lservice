@@ -44,19 +44,19 @@ int service_init_lua(service_t * s, const char * code, void * config) {
 		return -1; 
     }
 
+    int n_args = 0;
+    // push self
+    log_debug("s %d", s);
+    lua_pushlightuserdata(L, s);
+    n_args ++;
+
     // push lightuserdata (config)
     log_debug("config: %d", config);
-    int n_args = 0;
     if(config) {
         lua_pushlightuserdata(L, config);
         n_args ++;
     }
 
-    if(s->pool) {
-        log_debug("s->pool %d", s->pool);
-        lua_pushlightuserdata(L, s->pool);
-        n_args ++;
-    }
 
     // run the lua code, we expect the code will *return* a proper lua function
     // whenever some message arrives, this function will be executed

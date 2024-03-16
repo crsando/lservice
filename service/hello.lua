@@ -3,11 +3,11 @@ local seri = require "lseri"
 local service = require "lservice"
 local ffi = service.ffi
 
-local config, pool = service.input(seri.unpack_remove, ...)
+local name, config, pool = service.input(seri.unpack_remove, ...)
 
 local common = ffi.cast("int *", pool:registry "common")
 
-print("config:", inspect(config))
+print("init", name, inspect(config))
 print(common[0], common[5])
 
 local i = 1
