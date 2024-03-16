@@ -14,13 +14,16 @@ service_pool_t * service_pool_new() {
 }
 
 void * service_pool_registry(service_pool_t * pool, const char * key, void * ptr) {
+    log_debug("service_pool_registry : %d | %s | %d", pool, key, ptr);
     if(ptr) {
-        // get registry
-        return registry_get(&pool->variables, key);
-    }
-    else {
         registry_put(&pool->variables, key, ptr);
         return ptr;
+    }
+    else {
+        // get registry
+        registry_t * r = registry_get(&pool->variables, key);
+        log_debug("registry_get %d | %s | %d", r, r->key, r->ptr);
+        return ( r ? r->ptr : NULL );
     }
 }
 
@@ -50,6 +53,7 @@ int service_init_lua(service_t * s, const char * code, void * config) {
     }
 
     if(s->pool) {
+        log_debug("s->pool %d", s->pool);
         lua_pushlightuserdata(L, s->pool);
         n_args ++;
     }
@@ -120,6 +124,7 @@ void * service_routine_wrap(void * arg) {
 
     // run once
     while (1) {
+        log_debug("wait %s", s->name);
         cond_wait_begin(s->c);
         cond_wait(s->c);
 
@@ -131,6 +136,7 @@ void * service_routine_wrap(void * arg) {
         cond_wait_end(s->c);
 
         // run lua code
+        log_debug("triggered %s", s->name);
         service_routine_lua(s, msg);
     }
 }

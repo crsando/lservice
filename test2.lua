@@ -1,23 +1,32 @@
 local service = require "lservice"
 local seri = require "lseri"
-
+local ffi = require "ffi"
 
 local pool = service.new_pool()
 
-local s1 = pool:load()
-
 local config1 = seri.pack { sentence = "hello world" }
+local config2 = seri.pack { sentence = "hello world" }
 
-local s1 = pool:load("service/hello.lua", config1)
-local s2 = pool:load("service/hello.lua", nil)
+local s1 = pool:new_service { 
+    name = "s1",
+    path = "service/hello.lua", 
+    config = config1,
+}
 
+local s2 = pool:new_service {
+    name = "s2",
+    path ="service/hello.lua",
+    config = config2,
+}
 
-local common_config = seri.pack { ping = "hello", pong = "world" }
+local common = ffi.new("int [6]", {1,2,3,4,5,6})
 
-pool:registry("common", common_config)
+print(common)
 
-local cfg = pool:registry "common"
+pool:registry("common", common)
 
+local cfg = ffi.cast("int *", pool:registry "common")
+print(cfg, cfg[0], cfg[1], cfg[2], cfg[3], cfg[4], cfg[5])
 
 local data = { 1, 2, 3, "hello", last = "world"}
 
