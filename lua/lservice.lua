@@ -55,6 +55,7 @@ local lservice = ffi.load("lservice")
 -- wrap C module into a lua module
 
 local M = {}
+M.ffi = ffi
 
 function M.new_pool(core_ptr)
     local p = {}
@@ -132,6 +133,18 @@ end
 
 function M.sleep(secs)
     ffi.C.sleep(secs)
+end
+
+--
+-- utility functions
+--
+
+-- deserilizer is the function for resolving the configuration
+function M.input(deserilizer, ...)
+    local cfg_ptr, pool_ptr = ...
+    local config = (cfg_ptr ~= nil) and deserilizer(cfg_ptr) or {}
+    local pool = (pool_ptr ~= nil ) and M.new_pool(pool_ptr) or nil
+    return config, pool
 end
 
 return M

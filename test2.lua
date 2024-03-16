@@ -4,6 +4,11 @@ local ffi = require "ffi"
 
 local pool = service.new_pool()
 
+-- preinit, add common configurations
+local common = ffi.new("int [6]", {1,2,3,4,5,6})
+print(common)
+pool:registry("common", common)
+
 local config1 = seri.pack { sentence = "hello world" }
 local config2 = seri.pack { sentence = "hello world" }
 
@@ -19,11 +24,6 @@ local s2 = pool:new_service {
     config = config2,
 }
 
-local common = ffi.new("int [6]", {1,2,3,4,5,6})
-
-print(common)
-
-pool:registry("common", common)
 
 local cfg = ffi.cast("int *", pool:registry "common")
 print(cfg, cfg[0], cfg[1], cfg[2], cfg[3], cfg[4], cfg[5])
