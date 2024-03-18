@@ -13,6 +13,12 @@ service_pool_t * service_pool_new() {
     return pool;
 }
 
+service_t * service_pool_query_service(service_pool_t * pool, const char * key) {
+    registry_t * r = registry_get(&pool->services, key);
+    log_debug("service_pool_query_service | registry_get %d | %s", r, r->key);
+    return (service_t*)( r ? r->ptr : NULL );
+}
+
 void * service_pool_registry(service_pool_t * pool, const char * key, void * ptr) {
     log_debug("service_pool_registry : %d | %s | %d", pool, key, ptr);
     if(ptr) {
@@ -134,7 +140,9 @@ void * service_routine_wrap(void * arg) {
     while (1) {
         log_debug("wait %s", s->name);
         cond_wait_begin(s->c);
-        cond_wait(s->c);
+
+        if( queue_length(s->q) == 0 )
+            cond_wait(s->c);
 
         // designated behaviour: throw msg away, leave only the last one
         // TODO: Fix memory

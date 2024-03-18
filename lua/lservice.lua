@@ -13,10 +13,6 @@ typedef struct {
     registry_t * variables;
 } service_pool_t;
 
-service_pool_t * service_pool_new();
-
-void * service_pool_registry(service_pool_t * pool, const char * key, void * ptr);
-
 typedef struct {
     service_pool_t * pool;
     char name[32];
@@ -35,6 +31,10 @@ typedef struct {
     lua_State * L;
     int lua_func_ref;
 } service_t;
+
+service_pool_t * service_pool_new();
+void * service_pool_registry(service_pool_t * pool, const char * key, void * ptr);
+service_t * service_pool_query_service(service_pool_t * pool, const char * key);
 
 // service_t * service_new(service_pool_t * pool, const char * name);
 service_t * service_new(service_pool_t * pool, const char * name, const char * code, void * config);
@@ -93,25 +93,20 @@ function M.new_pool(core_ptr)
         registry = function(self, key, ptr) 
                 return lservice.service_pool_registry(self.core, key, ptr)
             end,
+
+        query_service = function(self, name)
+                local ptr = lservice.service_pool_query_service(self.core, name)
+                if ptr ~= nil then 
+                    return M.from_ptr(ptr)
+                end
+                return nil
+            end
     }
     setmetatable(p, { __index = _mt })
     return p
 end
 
-function M.new(t)
-    if t.pool ~= nil then 
-        assert(t.name, "service name not specified")
-    end
-
-
-    local code = t.code
-    if not code then 
-        assert(t.path)
-        code = assert(io.open(t.path):read("*all"), "service code path not found")
-    end
-
-
-    local _mt = {
+local _service_mt = {
         start = function (self)
                 return tonumber(lservice.service_start(self._s))
             end,
@@ -120,9 +115,28 @@ function M.new(t)
                 return self
             end,
     }
+
+function M.from_ptr(ptr)
+    local s = {}
+    s._s = ffi.cast("service_t *", ptr)
+    setmetatable(s, { __index = _service_mt })
+    return s
+end
+
+function M.new(t)
+    if t.pool ~= nil then 
+        assert(t.name, "service name not specified")
+    end
+
+    local code = t.code
+    if not code then 
+        assert(t.path)
+        code = assert(io.open(t.path):read("*all"), "service code path not found")
+    end
+
     local s = {}
     s._s = lservice.service_new(t.pool, t.name, code, t.config)
-    setmetatable(s, { __index = _mt })
+    setmetatable(s, { __index = _service_mt })
     return s
 end
 

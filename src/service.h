@@ -16,10 +16,6 @@ typedef struct {
     registry_t * variables;
 } service_pool_t;
 
-service_pool_t * service_pool_new();
-
-void * service_pool_registry(service_pool_t * pool, const char * key, void * ptr);
-
 typedef struct {
     service_pool_t * pool;
     char name[32];
@@ -38,6 +34,10 @@ typedef struct {
     lua_State * L;
     int lua_func_ref;
 } service_t;
+
+service_pool_t * service_pool_new();
+void * service_pool_registry(service_pool_t * pool, const char * key, void * ptr);
+service_t * service_pool_query_service(service_pool_t * pool, const char * key);
 
 // service_t * service_new(service_pool_t * pool, const char * name);
 service_t * service_new(service_pool_t * pool, const char * name, const char * code, void * config);

@@ -31,8 +31,15 @@ print(cfg, cfg[0], cfg[1], cfg[2], cfg[3], cfg[4], cfg[5])
 local data = { 1, 2, 3, "hello", last = "world"}
 
 while true do 
-    s1:send(seri.pack(data))
+    local stmp = pool:query_service "s1"
+    if stmp then 
+        stmp:send(seri.pack(data))
+    end
     service.sleep(1)
-    s2:send(seri.pack(data))
-    service.sleep(2)
+
+
+    -- s1:send(seri.pack(data))
+    -- service.sleep(1)
+    -- s2:send(seri.pack(data))
+    -- service.sleep(2)
 end
