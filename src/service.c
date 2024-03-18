@@ -27,7 +27,8 @@ void * service_pool_registry(service_pool_t * pool, const char * key, void * ptr
     }
 }
 
-int service_init_lua(service_t * s, const char * code, void * config) {
+// int service_init_lua(service_t * s, const char * code, void * config) {
+int service_init_lua(service_t * s) {
     lua_State * L;
 	L = luaL_newstate();
     if(!L) {
@@ -37,8 +38,7 @@ int service_init_lua(service_t * s, const char * code, void * config) {
 
 	luaL_openlibs(L);
 
-
-    if(luaL_loadstring(L, code)) {
+    if(luaL_loadstring(L, s->code)) {
         log_error("FATAL THREAD PANIC: (loadstring) %s", lua_tolstring(L, -1, NULL));
 		lua_close(L);
 		return -1; 
@@ -51,9 +51,9 @@ int service_init_lua(service_t * s, const char * code, void * config) {
     n_args ++;
 
     // push lightuserdata (config)
-    log_debug("config: %d", config);
-    if(config) {
-        lua_pushlightuserdata(L, config);
+    log_debug("config: %d", s->config);
+    if(s->config) {
+        lua_pushlightuserdata(L, s->config);
         n_args ++;
     }
 
@@ -90,7 +90,7 @@ int service_routine_lua(service_t * s, void * msg) {
 }
 
 
-service_t * service_new(service_pool_t * pool, const char * name) {
+service_t * service_new(service_pool_t * pool, const char * name, const char * code, void * config) {
     service_t * s;
 
     s = (service_t *)malloc(sizeof(service_t));
@@ -104,6 +104,11 @@ service_t * service_new(service_pool_t * pool, const char * name) {
         registry_put(&pool->services, name, s);
     }
 
+    assert(code != NULL);
+    s->code = (char *)malloc(sizeof(char) * (strlen(code) + 1));
+    strcpy(s->code, code);
+    s->config = config;
+
     s->q = queue_new_ptr(_SERVICE_MQ_DEF_SIZE_);
     s->c = (struct cond *)malloc(sizeof(struct cond));
     cond_create(s->c);
@@ -115,6 +120,9 @@ service_t * service_new(service_pool_t * pool, const char * name) {
 void * service_routine_wrap(void * arg) {
     void * msg;
     service_t * s = (service_t *)arg;
+
+    // init lua environment, load lua script
+    service_init_lua(s);
 
     // assert(s->service_type == 1);
     assert(s->L != NULL);

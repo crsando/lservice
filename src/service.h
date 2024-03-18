@@ -23,6 +23,10 @@ void * service_pool_registry(service_pool_t * pool, const char * key, void * ptr
 typedef struct {
     service_pool_t * pool;
     char name[32];
+
+    // init params
+    char * code;
+    void * config;
     // service_id id;
 
     // multi-thread utilities
@@ -30,15 +34,19 @@ typedef struct {
     struct queue * q;
     struct cond * c;
 
+
     lua_State * L;
     int lua_func_ref;
 } service_t;
 
-service_t * service_new(service_pool_t * pool, const char * name);
+// service_t * service_new(service_pool_t * pool, const char * name);
+service_t * service_new(service_pool_t * pool, const char * name, const char * code, void * config);
 
-int service_init_lua(service_t * s, const char * code, void * config);
+// int service_init_lua(service_t * s, const char * code, void * config);
+int service_init_lua(service_t * s);
 int service_routine_lua(service_t * s, void * msg);
 int service_start(service_t * s);
+
 int service_send(service_t * s, void * msg);
 int service_free(service_t * s);
 
