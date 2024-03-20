@@ -12,6 +12,7 @@
 typedef unsigned long long service_id;
 
 typedef struct {
+    pthread_mutex_t lock;
     registry_t * services;
     registry_t * variables;
 } service_pool_t;
