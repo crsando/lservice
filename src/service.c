@@ -27,6 +27,8 @@ void * service_pool_registry(service_pool_t * pool, const char * key, void * ptr
     }
     else {
         // get registry
+        if(! pool->variables )
+            return NULL;
         registry_t * r = registry_get(&pool->variables, key);
         log_debug("registry_get %d | %s | %d", r, r->key, r->ptr);
         return ( r ? r->ptr : NULL );
