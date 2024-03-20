@@ -50,7 +50,7 @@ int service_free(service_t * s);
 
 
 ffi.cdef[[
-    unsigned int sleep (unsigned int seconds);
+    void util_usleep(unsigned int u);
     int queue_length(struct queue *q);
 ]]
 
@@ -64,6 +64,10 @@ local lservice = ffi.load("lservice")
 
 local M = {}
 M.ffi = ffi
+
+function M.usleep(usecs)
+    lservice.util_usleep(usecs)
+end
 
 function M.new_pool(core_ptr)
     local p = {}

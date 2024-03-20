@@ -13,6 +13,7 @@ SRCS=\
  src/service.c \
  src/queue.c \
  src/registry.c \
+ src/util.c \
  src/log.c
 
 liblservice.$(SO) : $(SRCS)

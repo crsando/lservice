@@ -15,9 +15,13 @@ service_pool_t * service_pool_new() {
 }
 
 service_t * service_pool_query_service(service_pool_t * pool, const char * key) {
+    service_t * s = NULL;
+    pthread_mutex_lock(&pool->lock);
     registry_t * r = registry_get(&pool->services, key);
     log_debug("service_pool_query_service | registry_get %d | %s", r, r->key);
-    return (service_t*)( r ? r->ptr : NULL );
+    s = (service_t*)( r ? r->ptr : NULL );
+    pthread_mutex_unlock(&pool->lock);
+    return s;
 }
 
 void * service_pool_registry(service_pool_t * pool, const char * key, void * ptr) {
@@ -29,14 +33,19 @@ void * service_pool_registry(service_pool_t * pool, const char * key, void * ptr
         return ptr;
     }
     else {
+        void * data = NULL;
         // get registry
-        if(! pool->variables )
-            return NULL;
         pthread_mutex_lock(&pool->lock);
-        registry_t * r = registry_get(&pool->variables, key);
+        if(! pool->variables ) {
+            data = NULL;
+        }
+        else {
+            registry_t * r = registry_get(&pool->variables, key);
+            log_debug("registry_get %d | %s | %d", r, r->key, r->ptr);
+            data = ( r ? r->ptr : NULL );
+        }
         pthread_mutex_unlock(&pool->lock);
-        log_debug("registry_get %d | %s | %d", r, r->key, r->ptr);
-        return ( r ? r->ptr : NULL );
+        return data;
     }
 }
 
