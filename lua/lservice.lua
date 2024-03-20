@@ -177,8 +177,10 @@ function M.input(deserilizer, ...)
         local srv = ffi.cast("service_t *", srv_ptr) 
         name = ffi.string(srv.name)
         local pool_ptr = srv.pool
-        pool = (pool_ptr ~= nil ) and M.new_pool(pool_ptr) or nil
+        pool = (pool_ptr ~= nil ) and M.new_pool(pool_ptr) 
     end
+    config = config or {}
+    pool = pool or M.new_pool()
     return name, config, pool
 end
 
