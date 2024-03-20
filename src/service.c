@@ -35,13 +35,21 @@ void * service_pool_registry(service_pool_t * pool, const char * key, void * ptr
     else {
         void * data = NULL;
         // get registry
+        log_debug("lock pool->lock");
         pthread_mutex_lock(&pool->lock);
         if(! pool->variables ) {
+            log_debug("pool->variables == NULL");
             data = NULL;
         }
         else {
+            log_debug("pool->variables != NULL | registry_get | %d | %s", &pool->variables, key);
             registry_t * r = registry_get(&pool->variables, key);
-            log_debug("registry_get %d | %s | %d", r, r->key, r->ptr);
+            if( r != NULL ) {
+                log_debug("registry_get %d | %s | %d", r, r->key, r->ptr);
+            }
+            else {
+                log_debug("registry_get NULL");
+            }
             data = ( r ? r->ptr : NULL );
         }
         pthread_mutex_unlock(&pool->lock);
