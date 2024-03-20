@@ -123,7 +123,9 @@ service_t * service_new(service_pool_t * pool, const char * name, const char * c
         assert(name && (strlen(name) <= 30));
         strcpy(s->name, name);
 
+        pthread_mutex_lock(&pool->lock);
         registry_put(&pool->services, name, s);
+        pthread_mutex_unlock(&pool->lock);
     }
 
     assert(code != NULL);
@@ -154,11 +156,12 @@ void * service_routine_wrap(void * arg) {
 
     // run once
     while (1) {
-        log_debug("wait %s", s->name);
         cond_wait_begin(s->c);
+        log_debug("wait %s | %d", s->name, queue_length(s->q));
 
         if( queue_length(s->q) == 0 )
             cond_wait(s->c);
+        log_debug("wait step");
 
         // designated behaviour: throw msg away, leave only the last one
         // TODO: Fix memory
