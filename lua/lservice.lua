@@ -84,6 +84,15 @@ function M.new_pool(core_ptr)
                 local name = t.name or t.path
                 assert(name, "please specify name or path")
                 if #name > 30 then name = string.sub(name, 1, 30) end
+
+                config = nil
+                if t.config and (type(t.config) == "table") then 
+                    assert(M.serializer.pack, "serializer not specified")
+                    config = M.serializer.pack(t.config)
+                else 
+                    config = t.config
+                end
+
                 local s = M.new {
                         pool = p.core, 
                         name = t.name,
@@ -105,20 +114,20 @@ function M.new_pool(core_ptr)
                     return M.from_ptr(ptr)
                 end
                 return nil
-            end
+            end,
         send = function (self, name, msg)
                 local ptr = lservice.service_pool_query_service(self.core, name)
 
                 if type(msg) == "table" then 
                     assert(M.serializer.pack, "serializer not specified")
-                    msg = M.serializer.pack msg
+                    msg = M.serializer.pack(msg)
                 end
 
                 if ptr ~= nil then
                     lservice.service_send(ptr, msg)
                 end
                 return self
-            end
+            end,
     }
     setmetatable(p, { __index = _mt })
     return p
@@ -131,7 +140,7 @@ local _service_mt = {
         send = function (self, msg)
                 if type(msg) == "table" then 
                     assert(M.serializer.pack, "serializer not specified")
-                    msg = M.serializer.pack msg
+                    msg = M.serializer.pack(msg)
                 end
                 lservice.service_send(self._s, msg)
                 return self
@@ -156,8 +165,16 @@ function M.new(t)
         code = assert(io.open(t.path):read("*all"), "service code path not found")
     end
 
+    config = nil
+    if t.config and (type(t.config) == "table") then 
+        assert(M.serializer.pack, "serializer not specified")
+        config = M.serializer.pack(t.config)
+    else 
+        config = t.config
+    end
+
     local s = {}
-    s._s = lservice.service_new(t.pool, t.name, code, t.config)
+    s._s = lservice.service_new(t.pool, t.name, code, config)
     setmetatable(s, { __index = _service_mt })
     return s
 end

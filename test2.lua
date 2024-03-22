@@ -1,6 +1,7 @@
 local service = require "lservice"
 local seri = require "lseri"
 local ffi = require "ffi"
+service.serializer = seri
 
 local pool = service.new_pool()
 
@@ -9,8 +10,8 @@ local common = ffi.new("int [6]", {1,2,3,4,5,6})
 print(common)
 pool:registry("common", common)
 
-local config1 = seri.pack { sentence = "hello world" }
-local config2 = seri.pack { sentence = "hello world" }
+local config1 = { sentence = "hello world" }
+local config2 = { sentence = "hello world" }
 
 local s1 = pool:new_service { 
     name = "s1",
@@ -35,7 +36,7 @@ while true do
     if stmp then 
         stmp:send(seri.pack(data))
     end
-    service.sleep(1)
+    service.usleep(10000)
 
 
     -- s1:send(seri.pack(data))
