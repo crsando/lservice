@@ -63,7 +63,8 @@ local lservice = ffi.load("lservice")
 local M = {}
 M.ffi = ffi
 
-M.serializer = {}
+-- placeholder, dummy
+M.serializer = { pack = nil, unpack_remove = nil }
 
 
 function M.usleep(usecs)
