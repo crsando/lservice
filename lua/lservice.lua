@@ -36,10 +36,8 @@ service_pool_t * service_pool_new();
 void * service_pool_registry(service_pool_t * pool, const char * key, void * ptr);
 service_t * service_pool_query_service(service_pool_t * pool, const char * key);
 
-// service_t * service_new(service_pool_t * pool, const char * name);
 service_t * service_new(service_pool_t * pool, const char * name, const char * code, void * config);
 
-// int service_init_lua(service_t * s, const char * code, void * config);
 int service_init_lua(service_t * s);
 int service_routine_lua(service_t * s, void * msg);
 int service_start(service_t * s);
@@ -65,6 +63,9 @@ local lservice = ffi.load("lservice")
 local M = {}
 M.ffi = ffi
 
+M.serializer = {}
+
+
 function M.usleep(usecs)
     lservice.util_usleep(usecs)
 end
@@ -89,7 +90,6 @@ function M.new_pool(core_ptr)
                         path = t.path,
                         config = t.config
                     }
-                -- s:init { code = t.code, path = t.path, config = t.config }
                 s:start()
                 return s
             end,
@@ -105,6 +105,19 @@ function M.new_pool(core_ptr)
                 end
                 return nil
             end
+        send = function (self, name, msg)
+                local ptr = lservice.service_pool_query_service(self.core, name)
+
+                if type(msg) == "table" then 
+                    assert(M.serializer.pack, "serializer not specified")
+                    msg = M.serializer.pack msg
+                end
+
+                if ptr ~= nil then
+                    lservice.service_send(ptr, msg)
+                end
+                return self
+            end
     }
     setmetatable(p, { __index = _mt })
     return p
@@ -115,6 +128,10 @@ local _service_mt = {
                 return tonumber(lservice.service_start(self._s))
             end,
         send = function (self, msg)
+                if type(msg) == "table" then 
+                    assert(M.serializer.pack, "serializer not specified")
+                    msg = M.serializer.pack msg
+                end
                 lservice.service_send(self._s, msg)
                 return self
             end,
@@ -143,22 +160,6 @@ function M.new(t)
     setmetatable(s, { __index = _service_mt })
     return s
 end
-
--- function M.load(path, config)
---     local s = M.new()
---     local ret = 0
---     ret = s:init { path = path, config = config }
---     if ret ~= 0 then 
---         print("init service failed : %s", path)
---         return nil
---     end
---     ret = s:start()
---     if ret ~= 0 then 
---         print("start service failed : %s", path)
---         return nil
---     end
---     return s
--- end
 
 function M.thread_id()
     return (ffi.C.pthread_self())
