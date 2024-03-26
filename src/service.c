@@ -18,14 +18,14 @@ service_t * service_pool_query_service(service_pool_t * pool, const char * key) 
     service_t * s = NULL;
     pthread_mutex_lock(&pool->lock);
     registry_t * r = registry_get(&pool->services, key);
-    log_debug("service_pool_query_service | registry_get %d | %s", r, r->key);
+    // log_debug("service_pool_query_service | registry_get %d | %s", r, r->key);
     s = (service_t*)( r ? r->ptr : NULL );
     pthread_mutex_unlock(&pool->lock);
     return s;
 }
 
 void * service_pool_registry(service_pool_t * pool, const char * key, void * ptr) {
-    log_debug("service_pool_registry : %d | %s | %d", pool, key, ptr);
+    // log_debug("service_pool_registry : %d | %s | %d", pool, key, ptr);
     if(ptr) {
         pthread_mutex_lock(&pool->lock);
         registry_put(&pool->variables, key, ptr);
@@ -38,18 +38,18 @@ void * service_pool_registry(service_pool_t * pool, const char * key, void * ptr
         log_debug("lock pool->lock");
         pthread_mutex_lock(&pool->lock);
         if(! pool->variables ) {
-            log_debug("pool->variables == NULL");
+            // log_debug("pool->variables == NULL");
             data = NULL;
         }
         else {
-            log_debug("pool->variables != NULL | registry_get | %d | %s", &pool->variables, key);
+            // log_debug("pool->variables != NULL | registry_get | %d | %s", &pool->variables, key);
             registry_t * r = registry_get(&pool->variables, key);
-            if( r != NULL ) {
-                log_debug("registry_get %d | %s | %d", r, r->key, r->ptr);
-            }
-            else {
-                log_debug("registry_get NULL");
-            }
+            // if( r != NULL ) {
+            //     log_debug("registry_get %d | %s | %d", r, r->key, r->ptr);
+            // }
+            // else {
+            //     log_debug("registry_get NULL");
+            // }
             data = ( r ? r->ptr : NULL );
         }
         pthread_mutex_unlock(&pool->lock);
@@ -76,12 +76,12 @@ int service_init_lua(service_t * s) {
 
     int n_args = 0;
     // push self
-    log_debug("s %d", s);
+    // log_debug("s %d", s);
     lua_pushlightuserdata(L, s);
     n_args ++;
 
     // push lightuserdata (config)
-    log_debug("config: %d", s->config);
+    // log_debug("config: %d", s->config);
     if(s->config) {
         lua_pushlightuserdata(L, s->config);
         n_args ++;
@@ -165,11 +165,11 @@ void * service_routine_wrap(void * arg) {
     // run once
     while (1) {
         cond_wait_begin(s->c);
-        log_debug("wait %s | %d", s->name, queue_length(s->q));
+        // log_debug("wait %s | %d", s->name, queue_length(s->q));
 
         if( queue_length(s->q) == 0 )
             cond_wait(s->c);
-        log_debug("wait step");
+        // log_debug("wait step");
 
         // designated behaviour: throw msg away, leave only the last one
         // TODO: Fix memory
@@ -179,7 +179,7 @@ void * service_routine_wrap(void * arg) {
         cond_wait_end(s->c);
 
         // run lua code
-        log_debug("triggered %s", s->name);
+        // log_debug("triggered %s", s->name);
         service_routine_lua(s, msg);
     }
 }

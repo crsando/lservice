@@ -5,10 +5,10 @@ registry_t * registry_put(registry_t ** reg, const char * key, void * ptr);
 registry_t * registry_del(registry_t ** reg, const char * key);
 
 registry_t * registry_get(registry_t ** reg, const char * key) {
-	log_debug("registry_get %d | %d | %s", reg, &reg, key);
+	// log_debug("registry_get %d | %d | %s", reg, &reg, key);
 	registry_t * s = NULL;
 	HASH_FIND_STR(*reg, key, s);
-	log_debug("registry_get result %d", s);
+	// log_debug("registry_get result %d", s);
 	return s;
 }
 registry_t * registry_put(registry_t ** reg, const char * key, void * ptr) {
