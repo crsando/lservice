@@ -173,7 +173,8 @@ void * service_routine_wrap(void * arg) {
 
         // designated behaviour: throw msg away, leave only the last one
         // TODO: Fix memory
-        while( queue_length(s->q) > 0 )
+        // while( queue_length(s->q) > 0 )
+        if( queue_length(s->q) > 0 )
             msg = queue_pop_ptr(s->q);
 
         cond_wait_end(s->c);
